@@ -32,6 +32,7 @@ data fcnacaa08b005 /0., .0686, .142, .282, .389, .475, .725, &
 data ftnaca66 /0., .231, .306, .419, .508, .584, .8, .927, &
 	.99, 1., .992, .931, .807, .622, .375, .229, .006/
 integer(4), parameter:: maxft= 10
+character(64) :: fname
 
 common /cho/ chh, ch1, ch2, cht, drh, chr1, chr2
 
@@ -189,49 +190,24 @@ end do
 allocate( xa(33), ya(33), xb(np+1), yb(np+1))
 ttt = 8.*datan(1.d0)/dfloat(np)
 
-open(1, FILE='t1.prg')
+! --- CSV planform distribution for aerodynamic solvers ---
+open(1, FILE='planform.csv')
+write(1,'(A)') 'r/R,r [m],chord [m],twist [deg],thickness,camber,Cl,Cd'
 do k= 1, No
-	do i= 17, 33
-		xa(i)= xnaca(i-16)
-		ya(i)= 2.*deltac(k)*fcnacaa08b005(i-16) + &
-			delta(k)*ftnaca66(i-16)
-	end do
-	do i= 1, 17
-		xa(18-i)= - xnaca(i)
-		ya(18-i)= 2.*deltac(k)*fcnacaa08b005(i) - &
-			delta(k)*ftnaca66(i)
-	end do
-	do i=0, (np / 2) -1
-		xb(i+1) = (1+dcos(dfloat(i)*ttt))/2.
-		xb(np-i+1) = - (1+dcos(dfloat(i)*ttt))/2.
-	end do
-	xb(np/2+1) = 0.
-	CALL CSIEZ (33, xa, ya, np+1, xb, yb)
-	do i=1, np+1
-		xb(i) = 1. - 2.*abs(xb(i))
-	end do
-
-	write(1,113)
-	write(1,114)
-	rr= xii(1,k)
-	cc= c(k)*R/2.
-	do jj= 1, np+1
-		x= xs + (xb(jj)*dsin(phi(k))+yb(jj)*dcos(phi(k)))*cc
-		tita= ts + (c(k)/(2.*rr))* &
-			(xb(jj)*dcos(phi(k))-yb(jj)*dsin(phi(k)))
-		y= rr*R*dcos(tita)
-		z= rr*R*dsin(tita)
-		write(1,111) x, y, z
-	end do
-	write(1,115)
-	write(1,116)
+	write(1,'(F8.4,A,F10.4,A,F10.5,A,F10.4,A,F8.5,A,F8.5,A,F8.5,A,F10.7)') &
+		xii(1,k), ',', xii(2,k), ',', c(k)*R, ',', &
+		phi(k)*180./pi, ',', delta(k), ',', deltac(k), ',', &
+		cl(k), ',', cd(k)
 end do
-write(1,112)
 close(1)
+print*, 'Wrote planform.csv'
 
 !deallocate( )
 
-open(1, FILE='1.plt')
+! --- gnuplot file: all sections, blank-line separated ---
+open(1, FILE='sections.dat')
+write(1,'(A)') '# Airfoil sections (normalized x/c, y/c) per spanwise station'
+write(1,'(A)') '# Blocks separated by blank lines, one per r/R station'
 do k= 1, No
 	do i= 17, 33
 		xa(i)= xnaca(i-16)
@@ -253,15 +229,48 @@ do k= 1, No
 		xb(i) = 1. - 2.*abs(xb(i))
 	end do
 
-	rr= xii(1,k)
-	cc= c(k)*R/2.
+	write(1,'(A,F6.4)') '# r/R = ', xii(1,k)
 	do jj= 1, np+1
-		x= (xb(jj)*dsin(phi(k))+yb(jj)*dcos(phi(k)))*cc
-		y= (xb(jj)*dcos(phi(k))-yb(jj)*dsin(phi(k)))*cc
-		write(1,*) x, y
+		write(1,'(F10.6,1X,F10.6)') xb(jj), yb(jj)
 	end do
+	write(1,*)
 end do
 close(1)
+print*, 'Wrote sections.dat (gnuplot)'
+
+! --- Selig format .dat files: one per station (QBlade / XFOIL) ---
+do k= 1, No
+	write(fname,'(A,I2.2,A)') 'section_', k, '.dat'
+	open(1, FILE=trim(fname))
+	write(1,'(A,F6.4,A,F6.4,A,F6.4)') &
+		'LLOPT r/R=', xii(1,k), ' t/c=', delta(k), ' cam=', deltac(k)
+
+	do i= 17, 33
+		xa(i)= xnaca(i-16)
+		ya(i)= 2.*deltac(k)*fcnacaa08b005(i-16) + &
+			delta(k)*ftnaca66(i-16)
+	end do
+	do i= 1, 17
+		xa(18-i)= - xnaca(i)
+		ya(18-i)= 2.*deltac(k)*fcnacaa08b005(i) - &
+			delta(k)*ftnaca66(i)
+	end do
+	do i=0, (np / 2) -1
+		xb(i+1) = (1+dcos(dfloat(i)*ttt))/2.
+		xb(np-i+1) = - (1+dcos(dfloat(i)*ttt))/2.
+	end do
+	xb(np/2+1) = 0.
+	CALL CSIEZ (33, xa, ya, np+1, xb, yb)
+	do i=1, np+1
+		xb(i) = 1. - 2.*abs(xb(i))
+	end do
+
+	do jj= 1, np+1
+		write(1,'(F10.6,1X,F10.6)') xb(jj), yb(jj)
+	end do
+	close(1)
+end do
+print*, 'Wrote section_XX.dat (Selig/QBlade)'
 
 open(1, FILE='delta')
 do i= 1, No
@@ -286,12 +295,7 @@ do i= 1, 50
 end do
 close(1)
 
-111 format('K : ', F12.6, ',', F12.6, ',', F12.6)
-112 format('E : end')
-113 format('K : $ /cr m3 sp')
-114 format('K : KEY')
-115 format('K : DON')
-116 format('K : N')
+
 end program lloptwt
 
 
