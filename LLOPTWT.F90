@@ -1,6 +1,6 @@
 program lloptwt
 
-use msimslmd
+use spline_imsl
 
 real(8) pi, V, n, z, R, r1, rh, omega, rho, ni
 real(8) D, dh, tif, c2tk2, sum, li, lt, J
@@ -14,7 +14,6 @@ real(8) alfa, beta
 integer(4) nn, k
 integer(4) M, No
 !logical(1) tb
-real(8), external:: ktpif
 real(8)	xdata(8), fdata(8)
 real(8)	break(8), cscoef(4,8)
 real(8), allocatable :: xa(:), ya(:), xb(:), yb(:)
@@ -32,7 +31,6 @@ data ftnaca66 /0., .231, .306, .419, .508, .584, .8, .927, &
 	.99, 1., .992, .931, .807, .622, .375, .229, .006/
 integer(4), parameter:: maxft= 10
 
-common /sp1/ break, cscoef
 common /cho/ chh, ch1, ch2, cht, drh, chr1, chr2
 
 pi = 4.*atan(1.)
@@ -131,7 +129,7 @@ do while (abs(KT-KT1) > e1)
 	  RHS(i)= dsin(be-bei)*dsin(bei)/dsin(be)
   end do
 
-call dlsarg(M+1, s, M+1, RHS, 1, a)
+call solve_gauss(M+1, s, RHS, a)
 
 do i= 1, No
   be = datan(lt/xii(1,i))
@@ -150,8 +148,8 @@ do i= 1, No
 	fdata(No-i+1)= tempg*vri*cbi*(1.-(cd(i)/cl(i))*li/xii(1,i))
 end do
 
-  CALL dCSINT (No, XDATA, FDATA, BREAK, CSCOEF)
-  CALL dQDAGS (ktpif, drh, 1., 0., 0.0001, RES1, ERR1)
+  CALL CSINT (No, XDATA, FDATA, BREAK, CSCOEF)
+  RES1 = CSITG(drh, 1.0d0, No, BREAK, CSCOEF)
 
 	KT1 = -z*J**2.*pi*RES1/2.
 
@@ -160,7 +158,7 @@ end do
   li= li*KT/KT1
 end do
 
-CALL dWRRRN ('a', 1, M+1, a, 1, 0)
+write(*,'(A,*(F12.6,1X))') 'a: ', (a(i), i=0,M)
 print*, lt, li
 
 do i= 1, No
@@ -190,7 +188,7 @@ do k= 1, No
 		xb(np-i+1) = - (1+dcos(dfloat(i)*ttt))/2.
 	end do
 	xb(np/2+1) = 0.
-	CALL dCSIEZ (33, xa, ya, np+1, xb, yb)
+	CALL CSIEZ (33, xa, ya, np+1, xb, yb)
 	do i=1, np+1
 		xb(i) = 1. - 2.*abs(xb(i))
 	end do
@@ -232,7 +230,7 @@ do k= 1, No
 		xb(np-i+1) = - (1+dcos(dfloat(i)*ttt))/2.
 	end do
 	xb(np/2+1) = 0.
-	CALL dCSIEZ (33, xa, ya, np+1, xb, yb)
+	CALL CSIEZ (33, xa, ya, np+1, xb, yb)
 	do i=1, np+1
 		xb(i) = 1. - 2.*abs(xb(i))
 	end do
@@ -291,11 +289,59 @@ common /cho/ chh, ch1, ch2, cht, drh, chr1, chr2
 	end if
 end function
 
-real(8) function ktpif(dr)
-real(8)	dr, break(8), cscoef(4,8)
-common /sp1/ break, cscoef
-	ktpif= dCSVAL(dr, 7, BREAK, CSCOEF)
-end function
+! solve_gauss — Gaussian elimination with partial pivoting
+! Solves A*x = b for x.  A is n x n, b is n-vector.
+! A and b are not modified (copies are made internally).
+subroutine solve_gauss(n, A, b, x)
+  implicit none
+  integer(4), intent(in) :: n
+  real(8), intent(in)    :: A(n, 0:n-1), b(n)
+  real(8), intent(out)   :: x(0:n-1)
+
+  real(8) :: AA(n, n), bb(n), piv, tmp
+  integer(4) :: i, j, kk, imax
+
+  ! Copy inputs (solver overwrites)
+  do j = 1, n
+    do i = 1, n
+      AA(i, j) = A(i, j-1)
+    end do
+    bb(j) = b(j)
+  end do
+
+  ! Forward elimination with partial pivoting
+  do kk = 1, n-1
+    ! Find pivot
+    imax = kk
+    do i = kk+1, n
+      if (abs(AA(i, kk)) > abs(AA(imax, kk))) imax = i
+    end do
+    ! Swap rows
+    if (imax /= kk) then
+      do j = kk, n
+        tmp = AA(kk, j); AA(kk, j) = AA(imax, j); AA(imax, j) = tmp
+      end do
+      tmp = bb(kk); bb(kk) = bb(imax); bb(imax) = tmp
+    end if
+    ! Eliminate
+    do i = kk+1, n
+      piv = AA(i, kk) / AA(kk, kk)
+      do j = kk+1, n
+        AA(i, j) = AA(i, j) - piv * AA(kk, j)
+      end do
+      bb(i) = bb(i) - piv * bb(kk)
+    end do
+  end do
+
+  ! Back substitution
+  do i = n, 1, -1
+    tmp = bb(i)
+    do j = i+1, n
+      tmp = tmp - AA(i, j) * x(j-1)
+    end do
+    x(i-1) = tmp / AA(i, i)
+  end do
+end subroutine
 
 real(8) FUNCTION bn(p, n)
 real(8) p, a, f
