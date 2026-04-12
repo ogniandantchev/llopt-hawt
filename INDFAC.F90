@@ -4,6 +4,7 @@ real(8) z, r, r1, rh, rp, tbp
 real(8) mu, mup, muh, mu1, u, up, uh, u1
 real(8) s, rer, ni, a, b, y, y1, yh, yp
 real(8) f1, f2, f12, dit, it, rrr
+real(8), external :: sgn
 
 if (r /= rp) then
     rrr= rp*tbp
@@ -67,6 +68,7 @@ end function
 
 
 real(8) function sgn(x)
+real(8) x
     IF (x < 0.) THEN
 		sgn= -1.
 	ELSE IF (x == 0.) THEN

@@ -1,10 +1,11 @@
 program lloptwt
 
 use spline_imsl
+implicit real(8) (a-h, o-z)
 
 real(8) pi, V, n, z, R, r1, rh, omega, rho, ni
 real(8) D, dh, tif, c2tk2, sum, li, lt, J
-real(8), external::	itp, iap, jp, Gfx, Gdx
+real(8), external::	itp, iap, jp, Gfx, Gdx, chord, x2dr, bn
 real(8), allocatable:: s(:,:), a(:), RHS(:)
 real(8), allocatable:: xii(:,:), xkk(:,:)
 !real(8), allocatable:: dua1(:), dut1(:), dvr(:)
@@ -118,7 +119,7 @@ do while (abs(KT-KT1) > e1)
 		  do k= 1, No
 	  		c2tk2= dcos(pi*(2.*k-1.)/(2.*(2.*No+1.)))**2
 		  	tif= itp(z, li/xkk(1,k), xii(1,i), 1d-4, 1d4, xkk(1,k))
-		  	sum= sum + c2tk2*jp(nn, -.5,.5,xkk(0,k))*tif/(xkk(0,k)-xii(0,i))
+		  	sum= sum + c2tk2*jp(nn, -.5d0,.5d0,xkk(0,k))*tif/(xkk(0,k)-xii(0,i))
 		  end do
 		s(i,nn)= (1/(1.-drh))*(4.*pi/(2.*No+1.))*sum
 	  end do
@@ -169,7 +170,7 @@ end do
 
 
 allocate( xa(33), ya(33), xb(np+1), yb(np+1))
-ttt = 8.*datan(1.)/dfloat(np)
+ttt = 8.*datan(1.d0)/dfloat(np)
 
 open(1, FILE='t1.prg')
 do k= 1, No
@@ -278,6 +279,7 @@ end program lloptwt
 
 
 real(8)	function chord(r)
+real(8) r
 real(8) chh, ch1, ch2, cht, drh, chr1, chr2
 common /cho/ chh, ch1, ch2, cht, drh, chr1, chr2
 	if (r > chr2) then
@@ -364,6 +366,7 @@ END FUNCTION
 real(8) FUNCTION jp(n, a, b, x)
 integer(4) n, m
 real(8) a, b, x, s
+real(8), external :: bn
    s = 0.
    do m= 0, n
       s = s + bn(n+a, m)*bn(n+b, n-m)*((x-1.)**(n-m))*(x+1.)**m
