@@ -12,8 +12,9 @@ real(8), allocatable:: xii(:,:), xkk(:,:)
 real(8), allocatable:: cl(:), cd(:), c(:)
 real(8) drh, e1, cp, ct, kt, kt1
 real(8) alfa, beta
-integer(4) nn, k
+integer(4) nn, k, iter
 integer(4) M, No
+integer(4), parameter :: MAXITER = 200
 !logical(1) tb
 real(8)	xdata(8), fdata(8)
 real(8)	break(8), cscoef(4,8)
@@ -83,6 +84,10 @@ lt= V/(omega*R)
 li= 0.944*lt-0.065		!???
 !li = .26*lt**2 + .812*lt + .35*KT + .03
 
+print*, 'Initial: lt=', lt, ' li=', li, ' KT=', KT
+print*, 'J=', J, ' cp=', cp, ' ct=', ct
+print*, '---'
+
 np= 40
 M= 7
 No= M+1
@@ -111,7 +116,15 @@ do i= 1, No
 	c(i)= chord(xii(1,i))
 end do
 
+iter = 0
 do while (abs(KT-KT1) > e1)
+  iter = iter + 1
+  if (iter > MAXITER) then
+    print*, 'WARNING: max iterations reached, |KT-KT1|=', abs(KT-KT1)
+    exit
+  end if
+  write(*,'(A,I4,A,F12.8,A,F12.8,A,F12.8)') &
+    'iter ', iter, '  KT=', KT, '  KT1=', KT1, '  li=', li
 
   do i= 1, No
 	  do nn= 0, M
@@ -152,13 +165,17 @@ end do
   CALL CSINT (No, XDATA, FDATA, BREAK, CSCOEF)
   RES1 = CSITG(drh, 1.0d0, No, BREAK, CSCOEF)
 
+  write(*,'(A,F16.10,A,F16.10)') '  RES1=', RES1, '  drh=', drh
+
 	KT1 = -z*J**2.*pi*RES1/2.
 
-  print*, KT1, li
+  write(*,'(A,F12.8,A,F12.8,A,F12.8)') &
+    '  KT1=', KT1, '  li=', li, '  |KT-KT1|=', abs(KT-KT1)
 
   li= li*KT/KT1
 end do
 
+print*, 'Converged after', iter, 'iterations'
 write(*,'(A,*(F12.6,1X))') 'a: ', (a(i), i=0,M)
 print*, lt, li
 
