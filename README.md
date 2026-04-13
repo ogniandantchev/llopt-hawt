@@ -55,6 +55,12 @@ plot 'sections.dat' with lines
 ### `section_XX.dat`
 One file per spanwise station in Selig airfoil format, compatible with QBlade, XFOIL, XFLR5, and OpenVSP. The first line is a header with $r/R$, $t/c$, and camber; remaining lines are $x/c$, $y/c$ coordinates running from upper trailing edge around the leading edge to lower trailing edge. Reference the station files from `planform.csv` using the `Airfoil` column convention of the target solver.
 
+### `blade.plt`
+Twisted, physical-scale section profiles for visualizing the actual blade shape. Each station's coordinates are rotated by the local twist angle $\beta$ and scaled to the physical chord length. Gnuplot-compatible with blank-line-separated blocks. Plot with:
+```
+set size ratio -1; plot 'blade.plt' with lines notitle
+```
+
 ### `delta`
 Per-station aerodynamic data: $r/R$, $C_l$, $C_d$, $r$, $c/R$, camber, thickness, twist (deg).
 

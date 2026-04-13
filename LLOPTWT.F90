@@ -272,6 +272,44 @@ do k= 1, No
 end do
 print*, 'Wrote section_XX.dat (Selig/QBlade)'
 
+! --- Twisted physical-scale profiles for visualization ---
+open(1, FILE='blade.plt')
+write(1,'(A)') '# Blade sections with twist applied (physical scale)'
+write(1,'(A)') '# x [m] (chordwise, twisted)   y [m] (normal, twisted)'
+do k= 1, No
+	do i= 17, 33
+		xa(i)= xnaca(i-16)
+		ya(i)= 2.*deltac(k)*fcnacaa08b005(i-16) + &
+			delta(k)*ftnaca66(i-16)
+	end do
+	do i= 1, 17
+		xa(18-i)= - xnaca(i)
+		ya(18-i)= 2.*deltac(k)*fcnacaa08b005(i) - &
+			delta(k)*ftnaca66(i)
+	end do
+	do i=0, (np / 2) -1
+		xb(i+1) = (1+dcos(dfloat(i)*ttt))/2.
+		xb(np-i+1) = - (1+dcos(dfloat(i)*ttt))/2.
+	end do
+	xb(np/2+1) = 0.
+	CALL CSIEZ (33, xa, ya, np+1, xb, yb)
+	do i=1, np+1
+		xb(i) = 1. - 2.*abs(xb(i))
+	end do
+
+	cc= c(k)*R/2.
+	write(1,'(A,F6.4,A,F8.4)') '# r/R = ', xii(1,k), &
+		'  twist = ', phi(k)*180./pi
+	do jj= 1, np+1
+		x= (xb(jj)*dsin(phi(k))+yb(jj)*dcos(phi(k)))*cc
+		y= (xb(jj)*dcos(phi(k))-yb(jj)*dsin(phi(k)))*cc
+		write(1,'(F12.6,1X,F12.6)') x, y
+	end do
+	write(1,*)
+end do
+close(1)
+print*, 'Wrote blade.plt (twisted sections)'
+
 open(1, FILE='delta')
 do i= 1, No
 	write(1, *) xii(1, i), cl(i), cd(i), xii(2,i), c(i), deltac(i), &
