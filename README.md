@@ -3,6 +3,13 @@ Design problem for Horizontal Axis Wind Turbine blades, using Lifting Line theor
 
 -----------------------
 
+30th anniversary edition 
+* ported to GNU Fortran (from HP-UX Fortran and Fortran PowerStation 4)
+* resolved the dependency on IMSL (a commercial library)
+* started a post-processing/visualization script
+* adding some of the original references 
+
+
 # References
 1. Mishkevich V. G., A New Approach to Lifting Line Theory: Hub and Duct Effects, Journal of Ship Research, Vol. 50, No. 2, June 2006, pp. 138-146
 
