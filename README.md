@@ -21,17 +21,49 @@ Design problem for Horizontal Axis Wind Turbine blades, using Lifting Line theor
 
 ------------------------
 
-Z = number of blades
-
-$ \Gamma $ = bound circulation
-
-G = dimensionless bound circulation
-
-$ x, r, \theta $ = cylindrical coordinates 
-
-V = wind speed
-
-$ u_{a}, u_{t} $ = induced axial and tangental velocity, respectively 
+| Symbol | Description |
+|---|---|
+| $D$ | impeller diameter |
+| $R$ | impeller radius |
+| $Z$ | number of impeller blades |
+| $n$ | rotational frequency, s⁻¹ |
+| $\omega$ | angular velocity of rotation |
+| $V$ | undisturbed flow velocity |
+| $\bar{r}_H$ | dimensionless hub radius, $\bar{r}_H = r_H / R$ |
+| $\Gamma$ | circulation of the velocity around the profile of the cylindrical section |
+| $G$ | dimensionless circulation $G = \Gamma / (DV)$ |
+| $u_a, u_t, u_r$ | induced velocities |
+| $i_a, i_t$ | induction factors |
+| $J$ | advance ratio, $J = V / nD$ |
+| $H$ | helix pitch, $H = 2\pi V / \omega$ |
+| $\lambda_I$ | inductive advance coefficient, $\lambda_I = \dfrac{V + u_a}{r\omega - u_t}$ (upper sign for propeller) |
+| $\lambda_t$ | advance coefficient $\lambda_t = J / \pi$ |
+| $T$ | thrust |
+| $Q$ | torque |
+| $K_T, K_Q, K_P$ | coefficients of: thrust, torque and power |
+| $C_T, C_P, C_Q$ | load coefficients for: thrust, power, torque |
+| $F_P$ or $A_0$ | turbine (propeller) disk area |
+| $B$ | hydrodynamic characteristic of the section, $B = cC_L / 2$ |
+| $c$ | chord length of the airfoil section |
+| $\beta$ | advance angle, $\beta = \arctan(\lambda_t / \bar{r})$ |
+| $\beta_I$ | inductive advance angle, $\beta_I = \arctan(\lambda_I / \bar{r})$ |
+| $\varphi$ | setting angle |
+| $\alpha$ | geometric angle of attack |
+| $\alpha_0$ | zero-lift angle of attack |
+| $\alpha_a$ | aerodynamic angle of attack |
+| $C_L$ | lift coefficient of the airfoil section |
+| $C_D$ | drag coefficient of the airfoil section |
+| $\bar{C}$ | relative camber of the airfoil section |
+| $\bar{\delta}$ | relative thickness of the airfoil section |
+| $\varepsilon$ | inverse quality of the profile, $\varepsilon = C_D / C_L$ |
+| $Rn_S$ | Reynolds number, $V_R c / \nu$ |
+| $x$ | $x = \dfrac{\bar{r} - \bar{r}_H}{1 - \bar{r}_H} \cdot 2 - 1$ |
+| $\chi_j$ | angular displacement of the $j^{th}$ blade |
+| $\chi_j$ | $\chi_j = \dfrac{2\pi j}{Z}, \quad j = 0, 1, \ldots, Z-1$ |
+| $\rho$ | fluid density |
+| $\nu$ | kinematic viscosity of the fluid |
+| ЛРК | impeller blade |
+| ВТХО or HAWT | horizontal axis wind turbine |
 
 ------------------------
 
